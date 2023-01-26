@@ -1,0 +1,3 @@
+source dos certificados
+	https://docs.lacunasoftware.com/pt-br/articles/pki-guide/test-certs.html
+senha para cada um:1234
