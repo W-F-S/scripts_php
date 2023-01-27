@@ -1,11 +1,24 @@
 <?php
 	require_once(__DIR__.'/../TCPDF/examples/tcpdf_include.php');
 
-  function pfxtocrt(string $pfx, string $password, string $out_path = __DIR__.'/', string $out_name = 'certificado') : array<string>{
-    
+  define("CERT_PATH", __DIR__."/../assinatura_php/certificados_de_teste/Alan Mathison Turing.pfx");
+
+  /**
+   * pfxtocrt
+   * @param:
+   * string $pfx: absolute path para o certifico pfx
+   * string $password: password do arquivo pfx
+   * string $out_path: absolute path onde o arquivo será colocado
+   */
+  function pfxtocrt(string $pfx, string $password, string $out_path = __DIR__.'/certificado'){
+  
+    $cert_info = [];
+    $cert_store = '';
+
     if (!$cert_store = file_get_contents($pfx)) {
       echo ("Erro ao pegar o conteudo do arquivo: ".$pfx);
     }
+    //converte o pfx em crt e coloca em $cert_info
     if (openssl_pkcs12_read($cert_store, $cert_info, $password)) {
       echo "Informação do certificado:";
       print_r($cert_info);
@@ -13,15 +26,15 @@
       echo "Erro ao tentar formatar o certificado";
       echo openssl_error_string();
     }
-
-
-    file_put_contents($out_path.$out_name."crt", $cert_info['cert']);
-    file_put_contents($out_path.$out_name."pem", $cert_info['pkey']);
+    file_put_contents($out_path."crt", $cert_info['cert']);
+    file_put_contents($out_path."pem", $cert_info['pkey']);
     return [
-      "crt" => $out_path . $out_name . "crt",
-      "pem" => $out_path . $out_name . "pem"
+      "crt" => $out_path . "crt",
+      "pem" => $out_path . "pem"
     ];
   };
+
+  fucntion main(){
 
 	$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',false);
 	$pdf->SetCreator("Walker");
@@ -35,7 +48,7 @@
   $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
   $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
   $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-
+  pfxtocrt();
 
   $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
   $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
@@ -89,3 +102,4 @@
     //============================================================+
     // END OF FILE
     //============================================================+
+  }
