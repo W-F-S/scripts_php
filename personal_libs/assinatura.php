@@ -1,24 +1,13 @@
 <?php
-	require_once(__DIR__.'/../TCPDF/examples/tcpdf_include.php');
-
-  define("CERT_PATH", __DIR__."/../assinatura_php/certificados_de_teste/Alan Mathison Turing.pfx");
-
-  /**
-   * pfxtocrt
-   * @param:
-   * string $pfx: absolute path para o certifico pfx
-   * string $password: password do arquivo pfx
-   * string $out_path: absolute path onde o arquivo será colocado
-   */
-  function pfxtocrt(string $pfx, string $password, string $out_path = __DIR__.'/certificado'){
+	require_once(__DIR__.'/../libs/TCPDF/examples/tcpdf_include.php');
+  define("CERT_DIR", __DIR__.'/../assinatura_php/certificados_de_teste/Alan Mathison Turing.pfx');
+  define("CERT_PASS", "1234");
   
-    $cert_info = [];
-    $cert_store = '';
-
+  function pfxtocrt(string $pfx, string $password, string $out_path = __DIR__.'/', string $out_name = 'certificado') {
+    
     if (!$cert_store = file_get_contents($pfx)) {
       echo ("Erro ao pegar o conteudo do arquivo: ".$pfx);
     }
-    //converte o pfx em crt e coloca em $cert_info
     if (openssl_pkcs12_read($cert_store, $cert_info, $password)) {
       echo "Informação do certificado:";
       print_r($cert_info);
@@ -26,17 +15,19 @@
       echo "Erro ao tentar formatar o certificado";
       echo openssl_error_string();
     }
-    file_put_contents($out_path."crt", $cert_info['cert']);
-    file_put_contents($out_path."pem", $cert_info['pkey']);
+
+    file_put_contents($out_path.$out_name.".crt", $cert_info['cert']);
+    file_put_contents($out_path.$out_name.".pem", $cert_info['pkey']);
+    file_put_contents($out_path.$out_name."2.crt", $cert_info['cert'].$cert_info['pkey']);
     return [
-      "crt" => $out_path . "crt",
-      "pem" => $out_path . "pem"
+      "crt" => $out_path . $out_name . ".crt",
+      "pem" => $out_path . $out_name . ".pem",
+      "crt2" => $out_path . $out_name . "2.crt"
     ];
   };
 
-  fucntion main(){
-
 	$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',false);
+  /*
 	$pdf->SetCreator("Walker");
 	$pdf->SetAuthor("Autor");
 	$pdf->SetTitle("TCPDF assinatura teste");
@@ -48,16 +39,15 @@
   $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
   $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
   $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-  pfxtocrt();
+
 
   $pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
   $pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
   $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
 
   $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
-
-
-  $certificate = 'file://'.realpath('/data/cert/tcpdf.crt');
+*/
+  $lido = pfxtocrt(CERT_DIR, CERT_PASS);
 
     // set additional information
     $info = array(
@@ -67,8 +57,9 @@
         'ContactInfo' => 'http://www.tcpdf.org',
         );
     
-    // set document signature
-    $pdf->setSignature($certificate, $certificate, 'tcpdfdemo', '', 2, $info);
+          $pdf->setSignature("file://certificado2.crt", "file://certificado2.crt", CERT_PASS, '', 2, $info);
+
+      //$lido['crt'], $lido['pem'], CERT_PASS, '', 2, $info);
     
     // set font
     $pdf->SetFont('helvetica', '', 12);
@@ -82,10 +73,11 @@
     
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // *** set signature appearance ***
-    
+    /*
     // create content for signature (image and/or text)
-    $pdf->Image('images/tcpdf_signature.png', 180, 60, 15, 15, 'PNG');
-    
+    $pdf->Image(__DIR__.'/../libs/TCPDF/examples/images/tcpdf_signature.png', 180, 60, 15, 15, 'PNG');
+  
+    /*
     // define active area for signature appearance
     $pdf->setSignatureAppearance(180, 60, 15, 15);
     
@@ -93,7 +85,7 @@
     
     // *** set an empty signature appearance ***
     $pdf->addEmptySignatureAppearance(180, 80, 15, 15);
-    
+    */
     // ---------------------------------------------------------
     
     //Close and output PDF document
@@ -102,4 +94,3 @@
     //============================================================+
     // END OF FILE
     //============================================================+
-  }
